@@ -1,0 +1,52 @@
+
+CREATE DATABASE IF NOT EXISTS sistema_agendamento;
+USE sistema_agendamento;
+
+CREATE TABLE users (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email_verified_at TIMESTAMP NULL DEFAULT NULL,
+    password VARCHAR(255) NOT NULL DEFAULT '$2y$10$senha_padrao_hash',
+    cpf VARCHAR(14) NOT NULL UNIQUE,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    telefone VARCHAR(20) NULL,
+    remember_token VARCHAR(100) NULL,
+    created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE addresses (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
+    estado VARCHAR(100) NOT NULL,
+    cidade VARCHAR(100) NOT NULL,
+    rua VARCHAR(255) NOT NULL,
+    numero VARCHAR(10) NOT NULL,
+    cep VARCHAR(15) NOT NULL,
+    created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE appointments (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    paciente_id BIGINT UNSIGNED NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'pendente',
+    data_hora DATETIME NOT NULL,
+    created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (paciente_id) REFERENCES users (id) ON DELETE CASCADE
+);
+
+-- Trigger para setar o status como 'pendente' ao criar um registro em appointments
+DELIMITER $$
+CREATE TRIGGER set_status_default BEFORE INSERT ON appointments
+FOR EACH ROW
+BEGIN
+    IF NEW.status IS NULL OR NEW.status = '' THEN
+        SET NEW.status = 'pendente';
+    END IF;
+END$$
+DELIMITER ;
