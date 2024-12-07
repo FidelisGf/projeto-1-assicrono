@@ -50,3 +50,76 @@ BEGIN
     END IF;
 END$$
 DELIMITER ;
+
+
+
+CREATE TABLE auditoria (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    operacao VARCHAR(50) NOT NULL,
+    data TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+
+DELIMITER $$
+CREATE TRIGGER auditoria_insert_appointments 
+AFTER INSERT ON appointments
+FOR EACH ROW
+BEGIN
+    INSERT INTO auditoria (operacao) VALUES ('Inserção em appointments');
+END$$
+DELIMITER ;
+
+
+
+DELIMITER $$
+CREATE TRIGGER auditoria_update_appointments 
+AFTER UPDATE ON appointments
+FOR EACH ROW
+BEGIN
+    INSERT INTO auditoria (operacao) VALUES ('Atualização em appointments');
+END$$
+DELIMITER ;
+
+
+
+DELIMITER $$
+CREATE TRIGGER auditoria_delete_appointments 
+AFTER DELETE ON appointments
+FOR EACH ROW
+BEGIN
+    INSERT INTO auditoria (operacao) VALUES ('Exclusão em appointments');
+END$$
+DELIMITER ;
+
+
+
+CREATE VIEW agenda_pacientes AS
+SELECT 
+    a.id AS id_consulta,
+    u.name AS paciente_nome,
+    u.cpf AS paciente_cpf,
+    a.data_hora,
+    a.status
+FROM appointments a
+JOIN users u ON a.paciente_id = u.id;
+
+
+
+Consulta parametrizada na view:
+
+
+SELECT * 
+FROM agenda_pacientes
+WHERE DATE(data_hora) = CURRENT_DATE();
+
+
+
+SELECT * 
+FROM agenda_pacientes
+WHERE YEARWEEK(data_hora, 1) = YEARWEEK(CURRENT_DATE(), 1);
+
+
+
+SELECT * 
+FROM agenda_pacientes
+WHERE YEAR(data_hora) = YEAR(CURRENT_DATE()) AND MONTH(data_hora) = MONTH(CURRENT_DATE());
